@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/kadirahq/go-tools/function"
@@ -56,10 +55,8 @@ func NewServer(addr, dir string) (*Server, error) {
 
 // Start starts processing incomming requests
 func (s *Server) Start() error {
-	c := time.Tick(syncPeriod * time.Millisecond)
-
 	go func() {
-		for _ = range c {
+		for _ = range time.Tick(syncPeriod * time.Millisecond) {
 			s.sync.Flush()
 		}
 	}()
@@ -67,7 +64,6 @@ func (s *Server) Start() error {
 	for {
 		conn, err := s.trServer.Accept()
 		if err != nil {
-			fmt.Println(err)
 			continue
 		}
 
@@ -81,16 +77,14 @@ func (s *Server) handleConnection(conn *transport.Conn) {
 	for {
 		data, id, msgType, err := tr.ReceiveBatch()
 		if err != nil {
-			fmt.Println(err)
 			break
 		}
 
 		go s.handleMessage(tr, data, id, msgType)
 	}
 
-	err := conn.Close()
-	if err != nil {
-		fmt.Println("Error while closing connection", err)
+	if err := conn.Close(); err != nil {
+		fmt.Println(err)
 	}
 }
 
@@ -103,8 +97,9 @@ func (s *Server) handleMessage(tr *transport.Transport, data [][]byte, id uint64
 	case MsgTypeFetch:
 		err = tr.SendBatch(s.handleFetch(data), id, MsgTypeFetch)
 	}
+
 	if err != nil {
-		fmt.Printf("Error while sending batch (id: %d) %s", id, err)
+		fmt.Println(err)
 	}
 }
 
@@ -152,11 +147,12 @@ func (s *Server) handleTrack(trackBatch [][]byte) (resBatch [][]byte) {
 
 func (s *Server) handleFetch(fetchBatch [][]byte) (resBatch [][]byte) {
 	resBytes := make([][]byte, len(fetchBatch))
-	wg := &sync.WaitGroup{}
-	wg.Add(len(fetchBatch))
+	req := &ReqFetch{}
+	res := &ResFetch{}
 
-	setResponse := func(i int, res *ResFetch, errmsg string, result []*kadiyadb.Chunk) {
+	setResponse := func(i int, res *ResFetch, errmsg string, chunks []*kadiyadb.Chunk) {
 		res.Error = errmsg
+		res.Chunks = chunks
 		buf, err := res.Marshal()
 		if err != nil {
 			fmt.Println(err)
@@ -166,8 +162,9 @@ func (s *Server) handleFetch(fetchBatch [][]byte) (resBatch [][]byte) {
 	}
 
 	for i, fetchData := range fetchBatch {
-		req := &ReqFetch{}
-		res := &ResFetch{}
+		// Reset structs for reuse
+		req.Fields = req.Fields[:0]
+		res.Chunks = res.Chunks[:0]
 
 		err := req.Unmarshal(fetchData)
 		if err != nil {
@@ -175,27 +172,21 @@ func (s *Server) handleFetch(fetchBatch [][]byte) (resBatch [][]byte) {
 			continue
 		}
 
-		go func(req *ReqFetch, i int) {
-			defer wg.Done()
+		db, ok := s.dbs[req.Database]
+		if !ok {
+			setResponse(i, res, ErrUnknownDB.Error(), nil)
+			return
+		}
 
-			db, ok := s.dbs[req.Database]
-			if !ok {
-				setResponse(i, res, ErrUnknownDB.Error(), nil)
+		db.Fetch(req.From, req.To, req.Fields, func(chunks []*kadiyadb.Chunk, err error) {
+			if err != nil {
+				setResponse(i, res, err.Error(), nil)
 				return
 			}
 
-			db.Fetch(req.From, req.To, req.Fields, func(result []*kadiyadb.Chunk, err error) {
-				if err != nil {
-					setResponse(i, res, err.Error(), nil)
-					return
-				}
-
-				setResponse(i, res, "", result)
-			})
-		}(req, i)
+			setResponse(i, res, "", chunks)
+		})
 	}
-
-	wg.Wait()
 
 	return resBytes
 }
