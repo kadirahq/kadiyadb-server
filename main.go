@@ -6,31 +6,28 @@ import (
 
 	"net/http"
 	_ "net/http/pprof"
+)
 
-	"github.com/kadirahq/kadiyadb/server"
+var (
+	dir  = flag.String("dir", "/tmp/data/", "Where the databases files are located")
+	addr = flag.String("addr", ":8000", "Host and port of kadiyadb server <host>:<port>")
+	prof = flag.String("prof", ":6060", "Host and port of pprof server <host>:<port>")
 )
 
 func main() {
-	p := &server.Params{}
-	flag.StringVar(&p.Path, "path", "/data/", "Where the databases are located")
-	flag.StringVar(&p.Addr, "addr", "localhost:8000", "Host and port of the server <host>:<port>")
-
 	flag.Parse()
 
-	s, err := server.New(p)
+	if *prof != "" {
+		go http.ListenAndServe(*prof, nil)
+	}
 
+	s, err := NewServer(*addr, *dir)
 	if err != nil {
 		panic(err)
 	}
 
-	// pprof
-	go func() {
-		fmt.Println(http.ListenAndServe(":6060", nil))
-	}()
-
-	fmt.Printf("Listening on %s", p.Addr)
-	err = s.Start()
-	if err != nil {
+	fmt.Println("Listening on " + *addr)
+	if err := s.Start(); err != nil {
 		fmt.Println(err)
 	}
 }

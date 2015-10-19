@@ -3,7 +3,7 @@
 // DO NOT EDIT!
 
 /*
-	Package server is a generated protocol buffer package.
+	Package main is a generated protocol buffer package.
 
 	It is generated from these files:
 		protocol.proto
@@ -15,21 +15,26 @@
 		ResFetch
 		ReqSync
 		ResSync
-		Request
-		Response
 */
-package server
+package main
 
-import proto "github.com/golang/protobuf/proto"
-import database "github.com/kadirahq/kadiyadb/database"
-
+import proto "github.com/gogo/protobuf/proto"
+import fmt "fmt"
 import math "math"
+import kadiyadb "github.com/kadirahq/kadiyadb"
+
+import strings "strings"
+import github_com_gogo_protobuf_proto "github.com/gogo/protobuf/proto"
+import sort "sort"
+import strconv "strconv"
+import reflect "reflect"
 
 import io "io"
-import fmt "fmt"
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
+var _ = fmt.Errorf
+var _ = math.Inf
 
 type ReqTrack struct {
 	Database string   `protobuf:"bytes,1,opt,name=database,proto3" json:"database,omitempty"`
@@ -39,16 +44,15 @@ type ReqTrack struct {
 	Fields   []string `protobuf:"bytes,5,rep,name=fields" json:"fields,omitempty"`
 }
 
-func (m *ReqTrack) Reset()         { *m = ReqTrack{} }
-func (m *ReqTrack) String() string { return proto.CompactTextString(m) }
-func (*ReqTrack) ProtoMessage()    {}
+func (m *ReqTrack) Reset()      { *m = ReqTrack{} }
+func (*ReqTrack) ProtoMessage() {}
 
 type ResTrack struct {
+	Error string `protobuf:"bytes,1,opt,name=error,proto3" json:"error,omitempty"`
 }
 
-func (m *ResTrack) Reset()         { *m = ResTrack{} }
-func (m *ResTrack) String() string { return proto.CompactTextString(m) }
-func (*ResTrack) ProtoMessage()    {}
+func (m *ResTrack) Reset()      { *m = ResTrack{} }
+func (*ResTrack) ProtoMessage() {}
 
 type ReqFetch struct {
 	Database string   `protobuf:"bytes,1,opt,name=database,proto3" json:"database,omitempty"`
@@ -57,19 +61,18 @@ type ReqFetch struct {
 	Fields   []string `protobuf:"bytes,4,rep,name=fields" json:"fields,omitempty"`
 }
 
-func (m *ReqFetch) Reset()         { *m = ReqFetch{} }
-func (m *ReqFetch) String() string { return proto.CompactTextString(m) }
-func (*ReqFetch) ProtoMessage()    {}
+func (m *ReqFetch) Reset()      { *m = ReqFetch{} }
+func (*ReqFetch) ProtoMessage() {}
 
 type ResFetch struct {
-	Chunks []*database.Chunk `protobuf:"bytes,1,rep,name=chunks" json:"chunks,omitempty"`
+	Chunks []*kadiyadb.Chunk `protobuf:"bytes,1,rep,name=chunks" json:"chunks,omitempty"`
+	Error  string            `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
 }
 
-func (m *ResFetch) Reset()         { *m = ResFetch{} }
-func (m *ResFetch) String() string { return proto.CompactTextString(m) }
-func (*ResFetch) ProtoMessage()    {}
+func (m *ResFetch) Reset()      { *m = ResFetch{} }
+func (*ResFetch) ProtoMessage() {}
 
-func (m *ResFetch) GetChunks() []*database.Chunk {
+func (m *ResFetch) GetChunks() []*kadiyadb.Chunk {
 	if m != nil {
 		return m.Chunks
 	}
@@ -80,80 +83,300 @@ type ReqSync struct {
 	Database string `protobuf:"bytes,1,opt,name=database,proto3" json:"database,omitempty"`
 }
 
-func (m *ReqSync) Reset()         { *m = ReqSync{} }
-func (m *ReqSync) String() string { return proto.CompactTextString(m) }
-func (*ReqSync) ProtoMessage()    {}
+func (m *ReqSync) Reset()      { *m = ReqSync{} }
+func (*ReqSync) ProtoMessage() {}
 
 type ResSync struct {
+	Error string `protobuf:"bytes,1,opt,name=error,proto3" json:"error,omitempty"`
 }
 
-func (m *ResSync) Reset()         { *m = ResSync{} }
-func (m *ResSync) String() string { return proto.CompactTextString(m) }
-func (*ResSync) ProtoMessage()    {}
+func (m *ResSync) Reset()      { *m = ResSync{} }
+func (*ResSync) ProtoMessage() {}
 
-type Request struct {
-	Track *ReqTrack `protobuf:"bytes,1,opt,name=track" json:"track,omitempty"`
-	Fetch *ReqFetch `protobuf:"bytes,2,opt,name=fetch" json:"fetch,omitempty"`
-	Sync  *ReqSync  `protobuf:"bytes,3,opt,name=sync" json:"sync,omitempty"`
-}
-
-func (m *Request) Reset()         { *m = Request{} }
-func (m *Request) String() string { return proto.CompactTextString(m) }
-func (*Request) ProtoMessage()    {}
-
-func (m *Request) GetTrack() *ReqTrack {
-	if m != nil {
-		return m.Track
+func (this *ReqTrack) Equal(that interface{}) bool {
+	if that == nil {
+		if this == nil {
+			return true
+		}
+		return false
 	}
-	return nil
-}
 
-func (m *Request) GetFetch() *ReqFetch {
-	if m != nil {
-		return m.Fetch
+	that1, ok := that.(*ReqTrack)
+	if !ok {
+		return false
 	}
-	return nil
-}
-
-func (m *Request) GetSync() *ReqSync {
-	if m != nil {
-		return m.Sync
+	if that1 == nil {
+		if this == nil {
+			return true
+		}
+		return false
+	} else if this == nil {
+		return false
 	}
-	return nil
-}
-
-type Response struct {
-	Error string    `protobuf:"bytes,1,opt,name=error,proto3" json:"error,omitempty"`
-	Track *ResTrack `protobuf:"bytes,2,opt,name=track" json:"track,omitempty"`
-	Fetch *ResFetch `protobuf:"bytes,3,opt,name=fetch" json:"fetch,omitempty"`
-	Sync  *ResSync  `protobuf:"bytes,4,opt,name=sync" json:"sync,omitempty"`
-}
-
-func (m *Response) Reset()         { *m = Response{} }
-func (m *Response) String() string { return proto.CompactTextString(m) }
-func (*Response) ProtoMessage()    {}
-
-func (m *Response) GetTrack() *ResTrack {
-	if m != nil {
-		return m.Track
+	if this.Database != that1.Database {
+		return false
 	}
-	return nil
-}
-
-func (m *Response) GetFetch() *ResFetch {
-	if m != nil {
-		return m.Fetch
+	if this.Time != that1.Time {
+		return false
 	}
-	return nil
-}
-
-func (m *Response) GetSync() *ResSync {
-	if m != nil {
-		return m.Sync
+	if this.Total != that1.Total {
+		return false
 	}
-	return nil
+	if this.Count != that1.Count {
+		return false
+	}
+	if len(this.Fields) != len(that1.Fields) {
+		return false
+	}
+	for i := range this.Fields {
+		if this.Fields[i] != that1.Fields[i] {
+			return false
+		}
+	}
+	return true
 }
+func (this *ResTrack) Equal(that interface{}) bool {
+	if that == nil {
+		if this == nil {
+			return true
+		}
+		return false
+	}
 
+	that1, ok := that.(*ResTrack)
+	if !ok {
+		return false
+	}
+	if that1 == nil {
+		if this == nil {
+			return true
+		}
+		return false
+	} else if this == nil {
+		return false
+	}
+	if this.Error != that1.Error {
+		return false
+	}
+	return true
+}
+func (this *ReqFetch) Equal(that interface{}) bool {
+	if that == nil {
+		if this == nil {
+			return true
+		}
+		return false
+	}
+
+	that1, ok := that.(*ReqFetch)
+	if !ok {
+		return false
+	}
+	if that1 == nil {
+		if this == nil {
+			return true
+		}
+		return false
+	} else if this == nil {
+		return false
+	}
+	if this.Database != that1.Database {
+		return false
+	}
+	if this.From != that1.From {
+		return false
+	}
+	if this.To != that1.To {
+		return false
+	}
+	if len(this.Fields) != len(that1.Fields) {
+		return false
+	}
+	for i := range this.Fields {
+		if this.Fields[i] != that1.Fields[i] {
+			return false
+		}
+	}
+	return true
+}
+func (this *ResFetch) Equal(that interface{}) bool {
+	if that == nil {
+		if this == nil {
+			return true
+		}
+		return false
+	}
+
+	that1, ok := that.(*ResFetch)
+	if !ok {
+		return false
+	}
+	if that1 == nil {
+		if this == nil {
+			return true
+		}
+		return false
+	} else if this == nil {
+		return false
+	}
+	if len(this.Chunks) != len(that1.Chunks) {
+		return false
+	}
+	for i := range this.Chunks {
+		if !this.Chunks[i].Equal(that1.Chunks[i]) {
+			return false
+		}
+	}
+	if this.Error != that1.Error {
+		return false
+	}
+	return true
+}
+func (this *ReqSync) Equal(that interface{}) bool {
+	if that == nil {
+		if this == nil {
+			return true
+		}
+		return false
+	}
+
+	that1, ok := that.(*ReqSync)
+	if !ok {
+		return false
+	}
+	if that1 == nil {
+		if this == nil {
+			return true
+		}
+		return false
+	} else if this == nil {
+		return false
+	}
+	if this.Database != that1.Database {
+		return false
+	}
+	return true
+}
+func (this *ResSync) Equal(that interface{}) bool {
+	if that == nil {
+		if this == nil {
+			return true
+		}
+		return false
+	}
+
+	that1, ok := that.(*ResSync)
+	if !ok {
+		return false
+	}
+	if that1 == nil {
+		if this == nil {
+			return true
+		}
+		return false
+	} else if this == nil {
+		return false
+	}
+	if this.Error != that1.Error {
+		return false
+	}
+	return true
+}
+func (this *ReqTrack) GoString() string {
+	if this == nil {
+		return "nil"
+	}
+	s := make([]string, 0, 9)
+	s = append(s, "&main.ReqTrack{")
+	s = append(s, "Database: "+fmt.Sprintf("%#v", this.Database)+",\n")
+	s = append(s, "Time: "+fmt.Sprintf("%#v", this.Time)+",\n")
+	s = append(s, "Total: "+fmt.Sprintf("%#v", this.Total)+",\n")
+	s = append(s, "Count: "+fmt.Sprintf("%#v", this.Count)+",\n")
+	s = append(s, "Fields: "+fmt.Sprintf("%#v", this.Fields)+",\n")
+	s = append(s, "}")
+	return strings.Join(s, "")
+}
+func (this *ResTrack) GoString() string {
+	if this == nil {
+		return "nil"
+	}
+	s := make([]string, 0, 5)
+	s = append(s, "&main.ResTrack{")
+	s = append(s, "Error: "+fmt.Sprintf("%#v", this.Error)+",\n")
+	s = append(s, "}")
+	return strings.Join(s, "")
+}
+func (this *ReqFetch) GoString() string {
+	if this == nil {
+		return "nil"
+	}
+	s := make([]string, 0, 8)
+	s = append(s, "&main.ReqFetch{")
+	s = append(s, "Database: "+fmt.Sprintf("%#v", this.Database)+",\n")
+	s = append(s, "From: "+fmt.Sprintf("%#v", this.From)+",\n")
+	s = append(s, "To: "+fmt.Sprintf("%#v", this.To)+",\n")
+	s = append(s, "Fields: "+fmt.Sprintf("%#v", this.Fields)+",\n")
+	s = append(s, "}")
+	return strings.Join(s, "")
+}
+func (this *ResFetch) GoString() string {
+	if this == nil {
+		return "nil"
+	}
+	s := make([]string, 0, 6)
+	s = append(s, "&main.ResFetch{")
+	if this.Chunks != nil {
+		s = append(s, "Chunks: "+fmt.Sprintf("%#v", this.Chunks)+",\n")
+	}
+	s = append(s, "Error: "+fmt.Sprintf("%#v", this.Error)+",\n")
+	s = append(s, "}")
+	return strings.Join(s, "")
+}
+func (this *ReqSync) GoString() string {
+	if this == nil {
+		return "nil"
+	}
+	s := make([]string, 0, 5)
+	s = append(s, "&main.ReqSync{")
+	s = append(s, "Database: "+fmt.Sprintf("%#v", this.Database)+",\n")
+	s = append(s, "}")
+	return strings.Join(s, "")
+}
+func (this *ResSync) GoString() string {
+	if this == nil {
+		return "nil"
+	}
+	s := make([]string, 0, 5)
+	s = append(s, "&main.ResSync{")
+	s = append(s, "Error: "+fmt.Sprintf("%#v", this.Error)+",\n")
+	s = append(s, "}")
+	return strings.Join(s, "")
+}
+func valueToGoStringProtocol(v interface{}, typ string) string {
+	rv := reflect.ValueOf(v)
+	if rv.IsNil() {
+		return "nil"
+	}
+	pv := reflect.Indirect(rv).Interface()
+	return fmt.Sprintf("func(v %v) *%v { return &v } ( %#v )", typ, typ, pv)
+}
+func extensionToGoStringProtocol(e map[int32]github_com_gogo_protobuf_proto.Extension) string {
+	if e == nil {
+		return "nil"
+	}
+	s := "map[int32]proto.Extension{"
+	keys := make([]int, 0, len(e))
+	for k := range e {
+		keys = append(keys, int(k))
+	}
+	sort.Ints(keys)
+	ss := []string{}
+	for _, k := range keys {
+		ss = append(ss, strconv.Itoa(k)+": "+e[int32(k)].GoString())
+	}
+	s += strings.Join(ss, ",") + "}"
+	return s
+}
 func (m *ReqTrack) Marshal() (data []byte, err error) {
 	size := m.Size()
 	data = make([]byte, size)
@@ -223,6 +446,12 @@ func (m *ResTrack) MarshalTo(data []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if len(m.Error) > 0 {
+		data[i] = 0xa
+		i++
+		i = encodeVarintProtocol(data, i, uint64(len(m.Error)))
+		i += copy(data[i:], m.Error)
+	}
 	return i, nil
 }
 
@@ -302,6 +531,12 @@ func (m *ResFetch) MarshalTo(data []byte) (int, error) {
 			i += n
 		}
 	}
+	if len(m.Error) > 0 {
+		data[i] = 0x12
+		i++
+		i = encodeVarintProtocol(data, i, uint64(len(m.Error)))
+		i += copy(data[i:], m.Error)
+	}
 	return i, nil
 }
 
@@ -344,107 +579,11 @@ func (m *ResSync) MarshalTo(data []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	return i, nil
-}
-
-func (m *Request) Marshal() (data []byte, err error) {
-	size := m.Size()
-	data = make([]byte, size)
-	n, err := m.MarshalTo(data)
-	if err != nil {
-		return nil, err
-	}
-	return data[:n], nil
-}
-
-func (m *Request) MarshalTo(data []byte) (int, error) {
-	var i int
-	_ = i
-	var l int
-	_ = l
-	if m.Track != nil {
-		data[i] = 0xa
-		i++
-		i = encodeVarintProtocol(data, i, uint64(m.Track.Size()))
-		n1, err := m.Track.MarshalTo(data[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n1
-	}
-	if m.Fetch != nil {
-		data[i] = 0x12
-		i++
-		i = encodeVarintProtocol(data, i, uint64(m.Fetch.Size()))
-		n2, err := m.Fetch.MarshalTo(data[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n2
-	}
-	if m.Sync != nil {
-		data[i] = 0x1a
-		i++
-		i = encodeVarintProtocol(data, i, uint64(m.Sync.Size()))
-		n3, err := m.Sync.MarshalTo(data[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n3
-	}
-	return i, nil
-}
-
-func (m *Response) Marshal() (data []byte, err error) {
-	size := m.Size()
-	data = make([]byte, size)
-	n, err := m.MarshalTo(data)
-	if err != nil {
-		return nil, err
-	}
-	return data[:n], nil
-}
-
-func (m *Response) MarshalTo(data []byte) (int, error) {
-	var i int
-	_ = i
-	var l int
-	_ = l
 	if len(m.Error) > 0 {
 		data[i] = 0xa
 		i++
 		i = encodeVarintProtocol(data, i, uint64(len(m.Error)))
 		i += copy(data[i:], m.Error)
-	}
-	if m.Track != nil {
-		data[i] = 0x12
-		i++
-		i = encodeVarintProtocol(data, i, uint64(m.Track.Size()))
-		n4, err := m.Track.MarshalTo(data[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n4
-	}
-	if m.Fetch != nil {
-		data[i] = 0x1a
-		i++
-		i = encodeVarintProtocol(data, i, uint64(m.Fetch.Size()))
-		n5, err := m.Fetch.MarshalTo(data[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n5
-	}
-	if m.Sync != nil {
-		data[i] = 0x22
-		i++
-		i = encodeVarintProtocol(data, i, uint64(m.Sync.Size()))
-		n6, err := m.Sync.MarshalTo(data[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n6
 	}
 	return i, nil
 }
@@ -504,6 +643,10 @@ func (m *ReqTrack) Size() (n int) {
 func (m *ResTrack) Size() (n int) {
 	var l int
 	_ = l
+	l = len(m.Error)
+	if l > 0 {
+		n += 1 + l + sovProtocol(uint64(l))
+	}
 	return n
 }
 
@@ -538,6 +681,10 @@ func (m *ResFetch) Size() (n int) {
 			n += 1 + l + sovProtocol(uint64(l))
 		}
 	}
+	l = len(m.Error)
+	if l > 0 {
+		n += 1 + l + sovProtocol(uint64(l))
+	}
 	return n
 }
 
@@ -554,44 +701,8 @@ func (m *ReqSync) Size() (n int) {
 func (m *ResSync) Size() (n int) {
 	var l int
 	_ = l
-	return n
-}
-
-func (m *Request) Size() (n int) {
-	var l int
-	_ = l
-	if m.Track != nil {
-		l = m.Track.Size()
-		n += 1 + l + sovProtocol(uint64(l))
-	}
-	if m.Fetch != nil {
-		l = m.Fetch.Size()
-		n += 1 + l + sovProtocol(uint64(l))
-	}
-	if m.Sync != nil {
-		l = m.Sync.Size()
-		n += 1 + l + sovProtocol(uint64(l))
-	}
-	return n
-}
-
-func (m *Response) Size() (n int) {
-	var l int
-	_ = l
 	l = len(m.Error)
 	if l > 0 {
-		n += 1 + l + sovProtocol(uint64(l))
-	}
-	if m.Track != nil {
-		l = m.Track.Size()
-		n += 1 + l + sovProtocol(uint64(l))
-	}
-	if m.Fetch != nil {
-		l = m.Fetch.Size()
-		n += 1 + l + sovProtocol(uint64(l))
-	}
-	if m.Sync != nil {
-		l = m.Sync.Size()
 		n += 1 + l + sovProtocol(uint64(l))
 	}
 	return n
@@ -610,12 +721,92 @@ func sovProtocol(x uint64) (n int) {
 func sozProtocol(x uint64) (n int) {
 	return sovProtocol(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
+func (this *ReqTrack) String() string {
+	if this == nil {
+		return "nil"
+	}
+	s := strings.Join([]string{`&ReqTrack{`,
+		`Database:` + fmt.Sprintf("%v", this.Database) + `,`,
+		`Time:` + fmt.Sprintf("%v", this.Time) + `,`,
+		`Total:` + fmt.Sprintf("%v", this.Total) + `,`,
+		`Count:` + fmt.Sprintf("%v", this.Count) + `,`,
+		`Fields:` + fmt.Sprintf("%v", this.Fields) + `,`,
+		`}`,
+	}, "")
+	return s
+}
+func (this *ResTrack) String() string {
+	if this == nil {
+		return "nil"
+	}
+	s := strings.Join([]string{`&ResTrack{`,
+		`Error:` + fmt.Sprintf("%v", this.Error) + `,`,
+		`}`,
+	}, "")
+	return s
+}
+func (this *ReqFetch) String() string {
+	if this == nil {
+		return "nil"
+	}
+	s := strings.Join([]string{`&ReqFetch{`,
+		`Database:` + fmt.Sprintf("%v", this.Database) + `,`,
+		`From:` + fmt.Sprintf("%v", this.From) + `,`,
+		`To:` + fmt.Sprintf("%v", this.To) + `,`,
+		`Fields:` + fmt.Sprintf("%v", this.Fields) + `,`,
+		`}`,
+	}, "")
+	return s
+}
+func (this *ResFetch) String() string {
+	if this == nil {
+		return "nil"
+	}
+	s := strings.Join([]string{`&ResFetch{`,
+		`Chunks:` + strings.Replace(fmt.Sprintf("%v", this.Chunks), "Chunk", "kadiyadb.Chunk", 1) + `,`,
+		`Error:` + fmt.Sprintf("%v", this.Error) + `,`,
+		`}`,
+	}, "")
+	return s
+}
+func (this *ReqSync) String() string {
+	if this == nil {
+		return "nil"
+	}
+	s := strings.Join([]string{`&ReqSync{`,
+		`Database:` + fmt.Sprintf("%v", this.Database) + `,`,
+		`}`,
+	}, "")
+	return s
+}
+func (this *ResSync) String() string {
+	if this == nil {
+		return "nil"
+	}
+	s := strings.Join([]string{`&ResSync{`,
+		`Error:` + fmt.Sprintf("%v", this.Error) + `,`,
+		`}`,
+	}, "")
+	return s
+}
+func valueToStringProtocol(v interface{}) string {
+	rv := reflect.ValueOf(v)
+	if rv.IsNil() {
+		return "nil"
+	}
+	pv := reflect.Indirect(rv).Interface()
+	return fmt.Sprintf("*%v", pv)
+}
 func (m *ReqTrack) Unmarshal(data []byte) error {
 	l := len(data)
 	iNdEx := 0
 	for iNdEx < l {
+		preIndex := iNdEx
 		var wire uint64
 		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowProtocol
+			}
 			if iNdEx >= l {
 				return io.ErrUnexpectedEOF
 			}
@@ -628,6 +819,12 @@ func (m *ReqTrack) Unmarshal(data []byte) error {
 		}
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ReqTrack: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ReqTrack: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
@@ -635,6 +832,9 @@ func (m *ReqTrack) Unmarshal(data []byte) error {
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowProtocol
+				}
 				if iNdEx >= l {
 					return io.ErrUnexpectedEOF
 				}
@@ -645,10 +845,11 @@ func (m *ReqTrack) Unmarshal(data []byte) error {
 					break
 				}
 			}
-			postIndex := iNdEx + int(stringLen)
-			if stringLen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthProtocol
 			}
+			postIndex := iNdEx + intStringLen
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -660,6 +861,9 @@ func (m *ReqTrack) Unmarshal(data []byte) error {
 			}
 			m.Time = 0
 			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowProtocol
+				}
 				if iNdEx >= l {
 					return io.ErrUnexpectedEOF
 				}
@@ -694,6 +898,9 @@ func (m *ReqTrack) Unmarshal(data []byte) error {
 			}
 			m.Count = 0
 			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowProtocol
+				}
 				if iNdEx >= l {
 					return io.ErrUnexpectedEOF
 				}
@@ -710,6 +917,9 @@ func (m *ReqTrack) Unmarshal(data []byte) error {
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowProtocol
+				}
 				if iNdEx >= l {
 					return io.ErrUnexpectedEOF
 				}
@@ -720,25 +930,18 @@ func (m *ReqTrack) Unmarshal(data []byte) error {
 					break
 				}
 			}
-			postIndex := iNdEx + int(stringLen)
-			if stringLen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthProtocol
 			}
+			postIndex := iNdEx + intStringLen
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
 			m.Fields = append(m.Fields, string(data[iNdEx:postIndex]))
 			iNdEx = postIndex
 		default:
-			var sizeOfWire int
-			for {
-				sizeOfWire++
-				wire >>= 7
-				if wire == 0 {
-					break
-				}
-			}
-			iNdEx -= sizeOfWire
+			iNdEx = preIndex
 			skippy, err := skipProtocol(data[iNdEx:])
 			if err != nil {
 				return err
@@ -753,58 +956,21 @@ func (m *ReqTrack) Unmarshal(data []byte) error {
 		}
 	}
 
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
 	return nil
 }
 func (m *ResTrack) Unmarshal(data []byte) error {
 	l := len(data)
 	iNdEx := 0
 	for iNdEx < l {
+		preIndex := iNdEx
 		var wire uint64
 		for shift := uint(0); ; shift += 7 {
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
+			if shift >= 64 {
+				return ErrIntOverflowProtocol
 			}
-			b := data[iNdEx]
-			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		switch fieldNum {
-		default:
-			var sizeOfWire int
-			for {
-				sizeOfWire++
-				wire >>= 7
-				if wire == 0 {
-					break
-				}
-			}
-			iNdEx -= sizeOfWire
-			skippy, err := skipProtocol(data[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthProtocol
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	return nil
-}
-func (m *ReqFetch) Unmarshal(data []byte) error {
-	l := len(data)
-	iNdEx := 0
-	for iNdEx < l {
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
 			if iNdEx >= l {
 				return io.ErrUnexpectedEOF
 			}
@@ -817,13 +983,22 @@ func (m *ReqFetch) Unmarshal(data []byte) error {
 		}
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ResTrack: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ResTrack: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Database", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Error", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowProtocol
+				}
 				if iNdEx >= l {
 					return io.ErrUnexpectedEOF
 				}
@@ -834,10 +1009,90 @@ func (m *ReqFetch) Unmarshal(data []byte) error {
 					break
 				}
 			}
-			postIndex := iNdEx + int(stringLen)
-			if stringLen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthProtocol
 			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Error = string(data[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipProtocol(data[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthProtocol
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ReqFetch) Unmarshal(data []byte) error {
+	l := len(data)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowProtocol
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := data[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ReqFetch: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ReqFetch: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Database", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowProtocol
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthProtocol
+			}
+			postIndex := iNdEx + intStringLen
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
@@ -849,6 +1104,9 @@ func (m *ReqFetch) Unmarshal(data []byte) error {
 			}
 			m.From = 0
 			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowProtocol
+				}
 				if iNdEx >= l {
 					return io.ErrUnexpectedEOF
 				}
@@ -865,6 +1123,9 @@ func (m *ReqFetch) Unmarshal(data []byte) error {
 			}
 			m.To = 0
 			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowProtocol
+				}
 				if iNdEx >= l {
 					return io.ErrUnexpectedEOF
 				}
@@ -881,6 +1142,9 @@ func (m *ReqFetch) Unmarshal(data []byte) error {
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowProtocol
+				}
 				if iNdEx >= l {
 					return io.ErrUnexpectedEOF
 				}
@@ -891,25 +1155,18 @@ func (m *ReqFetch) Unmarshal(data []byte) error {
 					break
 				}
 			}
-			postIndex := iNdEx + int(stringLen)
-			if stringLen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthProtocol
 			}
+			postIndex := iNdEx + intStringLen
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
 			m.Fields = append(m.Fields, string(data[iNdEx:postIndex]))
 			iNdEx = postIndex
 		default:
-			var sizeOfWire int
-			for {
-				sizeOfWire++
-				wire >>= 7
-				if wire == 0 {
-					break
-				}
-			}
-			iNdEx -= sizeOfWire
+			iNdEx = preIndex
 			skippy, err := skipProtocol(data[iNdEx:])
 			if err != nil {
 				return err
@@ -924,14 +1181,21 @@ func (m *ReqFetch) Unmarshal(data []byte) error {
 		}
 	}
 
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
 	return nil
 }
 func (m *ResFetch) Unmarshal(data []byte) error {
 	l := len(data)
 	iNdEx := 0
 	for iNdEx < l {
+		preIndex := iNdEx
 		var wire uint64
 		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowProtocol
+			}
 			if iNdEx >= l {
 				return io.ErrUnexpectedEOF
 			}
@@ -944,6 +1208,12 @@ func (m *ResFetch) Unmarshal(data []byte) error {
 		}
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ResFetch: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ResFetch: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
@@ -951,6 +1221,9 @@ func (m *ResFetch) Unmarshal(data []byte) error {
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowProtocol
+				}
 				if iNdEx >= l {
 					return io.ErrUnexpectedEOF
 				}
@@ -961,28 +1234,49 @@ func (m *ResFetch) Unmarshal(data []byte) error {
 					break
 				}
 			}
-			postIndex := iNdEx + msglen
 			if msglen < 0 {
 				return ErrInvalidLengthProtocol
 			}
+			postIndex := iNdEx + msglen
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Chunks = append(m.Chunks, &database.Chunk{})
+			m.Chunks = append(m.Chunks, &kadiyadb.Chunk{})
 			if err := m.Chunks[len(m.Chunks)-1].Unmarshal(data[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
-		default:
-			var sizeOfWire int
-			for {
-				sizeOfWire++
-				wire >>= 7
-				if wire == 0 {
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Error", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowProtocol
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
 					break
 				}
 			}
-			iNdEx -= sizeOfWire
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthProtocol
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Error = string(data[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
 			skippy, err := skipProtocol(data[iNdEx:])
 			if err != nil {
 				return err
@@ -997,14 +1291,21 @@ func (m *ResFetch) Unmarshal(data []byte) error {
 		}
 	}
 
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
 	return nil
 }
 func (m *ReqSync) Unmarshal(data []byte) error {
 	l := len(data)
 	iNdEx := 0
 	for iNdEx < l {
+		preIndex := iNdEx
 		var wire uint64
 		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowProtocol
+			}
 			if iNdEx >= l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1017,6 +1318,12 @@ func (m *ReqSync) Unmarshal(data []byte) error {
 		}
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ReqSync: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ReqSync: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
@@ -1024,6 +1331,9 @@ func (m *ReqSync) Unmarshal(data []byte) error {
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowProtocol
+				}
 				if iNdEx >= l {
 					return io.ErrUnexpectedEOF
 				}
@@ -1034,25 +1344,18 @@ func (m *ReqSync) Unmarshal(data []byte) error {
 					break
 				}
 			}
-			postIndex := iNdEx + int(stringLen)
-			if stringLen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthProtocol
 			}
+			postIndex := iNdEx + intStringLen
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
 			m.Database = string(data[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
-			var sizeOfWire int
-			for {
-				sizeOfWire++
-				wire >>= 7
-				if wire == 0 {
-					break
-				}
-			}
-			iNdEx -= sizeOfWire
+			iNdEx = preIndex
 			skippy, err := skipProtocol(data[iNdEx:])
 			if err != nil {
 				return err
@@ -1067,58 +1370,21 @@ func (m *ReqSync) Unmarshal(data []byte) error {
 		}
 	}
 
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
 	return nil
 }
 func (m *ResSync) Unmarshal(data []byte) error {
 	l := len(data)
 	iNdEx := 0
 	for iNdEx < l {
+		preIndex := iNdEx
 		var wire uint64
 		for shift := uint(0); ; shift += 7 {
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
+			if shift >= 64 {
+				return ErrIntOverflowProtocol
 			}
-			b := data[iNdEx]
-			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		switch fieldNum {
-		default:
-			var sizeOfWire int
-			for {
-				sizeOfWire++
-				wire >>= 7
-				if wire == 0 {
-					break
-				}
-			}
-			iNdEx -= sizeOfWire
-			skippy, err := skipProtocol(data[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthProtocol
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	return nil
-}
-func (m *Request) Unmarshal(data []byte) error {
-	l := len(data)
-	iNdEx := 0
-	for iNdEx < l {
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
 			if iNdEx >= l {
 				return io.ErrUnexpectedEOF
 			}
@@ -1131,141 +1397,12 @@ func (m *Request) Unmarshal(data []byte) error {
 		}
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Track", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := data[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			postIndex := iNdEx + msglen
-			if msglen < 0 {
-				return ErrInvalidLengthProtocol
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Track == nil {
-				m.Track = &ReqTrack{}
-			}
-			if err := m.Track.Unmarshal(data[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Fetch", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := data[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			postIndex := iNdEx + msglen
-			if msglen < 0 {
-				return ErrInvalidLengthProtocol
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Fetch == nil {
-				m.Fetch = &ReqFetch{}
-			}
-			if err := m.Fetch.Unmarshal(data[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Sync", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := data[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			postIndex := iNdEx + msglen
-			if msglen < 0 {
-				return ErrInvalidLengthProtocol
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Sync == nil {
-				m.Sync = &ReqSync{}
-			}
-			if err := m.Sync.Unmarshal(data[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			var sizeOfWire int
-			for {
-				sizeOfWire++
-				wire >>= 7
-				if wire == 0 {
-					break
-				}
-			}
-			iNdEx -= sizeOfWire
-			skippy, err := skipProtocol(data[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthProtocol
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
+		if wireType == 4 {
+			return fmt.Errorf("proto: ResSync: wiretype end group for non-group")
 		}
-	}
-
-	return nil
-}
-func (m *Response) Unmarshal(data []byte) error {
-	l := len(data)
-	iNdEx := 0
-	for iNdEx < l {
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := data[iNdEx]
-			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
-			if b < 0x80 {
-				break
-			}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ResSync: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
@@ -1273,6 +1410,9 @@ func (m *Response) Unmarshal(data []byte) error {
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowProtocol
+				}
 				if iNdEx >= l {
 					return io.ErrUnexpectedEOF
 				}
@@ -1283,115 +1423,18 @@ func (m *Response) Unmarshal(data []byte) error {
 					break
 				}
 			}
-			postIndex := iNdEx + int(stringLen)
-			if stringLen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthProtocol
 			}
+			postIndex := iNdEx + intStringLen
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
 			m.Error = string(data[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Track", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := data[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			postIndex := iNdEx + msglen
-			if msglen < 0 {
-				return ErrInvalidLengthProtocol
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Track == nil {
-				m.Track = &ResTrack{}
-			}
-			if err := m.Track.Unmarshal(data[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Fetch", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := data[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			postIndex := iNdEx + msglen
-			if msglen < 0 {
-				return ErrInvalidLengthProtocol
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Fetch == nil {
-				m.Fetch = &ResFetch{}
-			}
-			if err := m.Fetch.Unmarshal(data[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Sync", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := data[iNdEx]
-				iNdEx++
-				msglen |= (int(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			postIndex := iNdEx + msglen
-			if msglen < 0 {
-				return ErrInvalidLengthProtocol
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Sync == nil {
-				m.Sync = &ResSync{}
-			}
-			if err := m.Sync.Unmarshal(data[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
 		default:
-			var sizeOfWire int
-			for {
-				sizeOfWire++
-				wire >>= 7
-				if wire == 0 {
-					break
-				}
-			}
-			iNdEx -= sizeOfWire
+			iNdEx = preIndex
 			skippy, err := skipProtocol(data[iNdEx:])
 			if err != nil {
 				return err
@@ -1406,6 +1449,9 @@ func (m *Response) Unmarshal(data []byte) error {
 		}
 	}
 
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
 	return nil
 }
 func skipProtocol(data []byte) (n int, err error) {
@@ -1414,6 +1460,9 @@ func skipProtocol(data []byte) (n int, err error) {
 	for iNdEx < l {
 		var wire uint64
 		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return 0, ErrIntOverflowProtocol
+			}
 			if iNdEx >= l {
 				return 0, io.ErrUnexpectedEOF
 			}
@@ -1427,7 +1476,10 @@ func skipProtocol(data []byte) (n int, err error) {
 		wireType := int(wire & 0x7)
 		switch wireType {
 		case 0:
-			for {
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return 0, ErrIntOverflowProtocol
+				}
 				if iNdEx >= l {
 					return 0, io.ErrUnexpectedEOF
 				}
@@ -1443,6 +1495,9 @@ func skipProtocol(data []byte) (n int, err error) {
 		case 2:
 			var length int
 			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return 0, ErrIntOverflowProtocol
+				}
 				if iNdEx >= l {
 					return 0, io.ErrUnexpectedEOF
 				}
@@ -1463,6 +1518,9 @@ func skipProtocol(data []byte) (n int, err error) {
 				var innerWire uint64
 				var start int = iNdEx
 				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return 0, ErrIntOverflowProtocol
+					}
 					if iNdEx >= l {
 						return 0, io.ErrUnexpectedEOF
 					}
@@ -1498,4 +1556,5 @@ func skipProtocol(data []byte) (n int, err error) {
 
 var (
 	ErrInvalidLengthProtocol = fmt.Errorf("proto: negative length found during unmarshaling")
+	ErrIntOverflowProtocol   = fmt.Errorf("proto: integer overflow")
 )

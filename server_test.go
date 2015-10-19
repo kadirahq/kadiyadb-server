@@ -1,4 +1,4 @@
-package server
+package main
 
 import (
 	"flag"
@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kadirahq/kadiyadb/transport"
+	"github.com/kadirahq/kadiyadb-transport"
 )
 
 func TestMain(m *testing.M) {
@@ -17,10 +17,6 @@ func TestMain(m *testing.M) {
 	dir := "/tmp/testdbs"
 
 	if err := os.RemoveAll(dir); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-	if err := os.MkdirAll(dir, 0777); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
@@ -43,9 +39,7 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 
-	p := &Params{Addr: "localhost:3000", Path: dir}
-	s, err := New(p)
-
+	s, err := NewServer(":3000", dir)
 	if err != nil {
 		fmt.Println("NewServer gives error", err)
 		os.Exit(1)
@@ -58,7 +52,8 @@ func TestMain(m *testing.M) {
 		}
 	}()
 
-	time.Sleep(time.Second) // give a second to the server to start
+	// give a second to the server to start
+	time.Sleep(time.Second)
 	os.Exit(m.Run())
 }
 
@@ -67,8 +62,8 @@ func TestBatch(t *testing.T) {
 	if err != nil {
 		t.Fatal("Dial gives error", err)
 	}
-	tr := transport.New(conn)
 
+	tr := transport.New(conn)
 	tracks := []*ReqTrack{}
 
 	for i := 0; i < 100; i++ {
@@ -101,23 +96,20 @@ func TestBatch(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fetches := []*ReqFetch{}
-
-	fetches = append(fetches,
+	fetches := []*ReqFetch{
 		&ReqFetch{
 			Database: "test",
 			From:     0,
 			To:       60000000000,
 			Fields:   []string{"foo", "bar"},
 		},
-
 		&ReqFetch{
 			Database: "test",
 			From:     0,
 			To:       60000000000,
 			Fields:   []string{"foo", "bar"},
 		},
-	)
+	}
 
 	data = make([][]byte, len(fetches))
 
@@ -139,16 +131,14 @@ func TestBatch(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	for _, res := range b {
-		r := Response{}
-		err := r.Unmarshal(res)
-
-		//TODO: assert correctness received data
-
+	for _, resData := range b {
+		res := &ResTrack{}
+		err := res.Unmarshal(resData)
 		if err != nil {
 			t.Fatal(err)
 		}
 
+		//TODO: assert correctness received data
 	}
 }
 
