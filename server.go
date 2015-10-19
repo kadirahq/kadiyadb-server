@@ -11,13 +11,13 @@ import (
 	"github.com/kadirahq/kadiyadb-transport"
 )
 
+// message types
 const (
-	// MsgTypeTrack identify `Track` requests
-	MsgTypeTrack = 0x00
+	MsgTypeTrack = iota + 1
+	MsgTypeFetch
+)
 
-	// MsgTypeFetch identify `Fetch` requests
-	MsgTypeFetch = 0x01
-
+const (
 	// syncPeriod is the time between database syncs in milliseconds
 	syncPeriod = 100
 )
