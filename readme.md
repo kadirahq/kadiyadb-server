@@ -3,11 +3,8 @@
 > Status: Alpha
 
 KadiyaDB is a time-series database designed for storing real-time metrics.
-
-## Getting Started
-
-KadiyaDB is written in Go and like many Go programs, the server is go-gettable.
-To build the server from the source code, `go get` the server package/program.
+It's written in Go and like many Go programs, the server is go-gettable.
+To build the server from the source code, `go get` the server package.
 
 ```shell
 go get -u github.com/kadirahq/kadiyadb-server
