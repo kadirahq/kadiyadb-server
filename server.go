@@ -89,7 +89,7 @@ func (s *Server) handleConnection(conn *transport.Conn) {
 	}
 }
 
-func (s *Server) handleMessage(tr *transport.Transport, data [][]byte, id uint64, msgType uint8) {
+func (s *Server) handleMessage(tr *transport.Transport, data [][]byte, id uint32, msgType uint8) {
 	var err error
 
 	switch msgType {
