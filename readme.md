@@ -13,9 +13,8 @@ To build the server from the source code, `go get` the server package/program.
 go get -u github.com/kadirahq/kadiyadb-server
 ```
 
-You can also start a database server using our pre-built Docker container.
-The docker image is based on [alpine linux](http://www.alpinelinux.org/)
-therefore the image is quite small.
+You may also use the pre-compiled binary files inside the build directory or
+our pre-built pre-built Docker image. The docker image is based on [alpine linux](http://www.alpinelinux.org/).
 
 ``` shell
 docker run -d \
