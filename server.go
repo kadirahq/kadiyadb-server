@@ -7,6 +7,7 @@ import (
 
 	"github.com/kadirahq/go-tools/function"
 	"github.com/kadirahq/kadiyadb"
+	"github.com/kadirahq/kadiyadb-protocol"
 	"github.com/kadirahq/kadiyadb-transport"
 )
 
@@ -105,10 +106,10 @@ func (s *Server) handleMessage(tr *transport.Transport, data [][]byte, id uint64
 
 func (s *Server) handleTrack(trackBatch [][]byte) (resBatch [][]byte) {
 	resBytes := make([][]byte, len(trackBatch))
-	req := &ReqTrack{}
-	res := &ResTrack{}
+	req := &protocol.ReqTrack{}
+	res := &protocol.ResTrack{}
 
-	setResponse := func(i int, res *ResTrack, errmsg string) {
+	setResponse := func(i int, res *protocol.ResTrack, errmsg string) {
 		res.Error = errmsg
 		buf, err := res.Marshal()
 		if err != nil {
@@ -147,10 +148,10 @@ func (s *Server) handleTrack(trackBatch [][]byte) (resBatch [][]byte) {
 
 func (s *Server) handleFetch(fetchBatch [][]byte) (resBatch [][]byte) {
 	resBytes := make([][]byte, len(fetchBatch))
-	req := &ReqFetch{}
-	res := &ResFetch{}
+	req := &protocol.ReqFetch{}
+	res := &protocol.ResFetch{}
 
-	setResponse := func(i int, res *ResFetch, errmsg string, chunks []*kadiyadb.Chunk) {
+	setResponse := func(i int, res *protocol.ResFetch, errmsg string, chunks []*protocol.Chunk) {
 		res.Error = errmsg
 		res.Chunks = chunks
 		buf, err := res.Marshal()
@@ -178,7 +179,7 @@ func (s *Server) handleFetch(fetchBatch [][]byte) (resBatch [][]byte) {
 			return
 		}
 
-		db.Fetch(req.From, req.To, req.Fields, func(chunks []*kadiyadb.Chunk, err error) {
+		db.Fetch(req.From, req.To, req.Fields, func(chunks []*protocol.Chunk, err error) {
 			if err != nil {
 				setResponse(i, res, err.Error(), nil)
 				return
