@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	dir  = flag.String("dir", "/tmp/data/", "Where the databases files are located")
+	data = flag.String("data", "/tmp/data/", "Where the databases files are located")
 	addr = flag.String("addr", ":8000", "Host and port of kadiyadb server <host>:<port>")
 	prof = flag.String("prof", ":6060", "Host and port of pprof server <host>:<port>")
 )
@@ -21,7 +21,7 @@ func main() {
 		go http.ListenAndServe(*prof, nil)
 	}
 
-	s, err := NewServer(*addr, *dir)
+	s, err := NewServer(*addr, *data)
 	if err != nil {
 		panic(err)
 	}
