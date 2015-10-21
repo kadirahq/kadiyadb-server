@@ -19,7 +19,7 @@ const (
 
 const (
 	// syncPeriod is the time between database syncs in milliseconds
-	syncPeriod = 100
+	syncPeriod = 500
 )
 
 var (
