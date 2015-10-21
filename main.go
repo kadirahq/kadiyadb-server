@@ -17,16 +17,23 @@ var (
 func main() {
 	flag.Parse()
 
-	if *prof != "" {
-		go http.ListenAndServe(*prof, nil)
-	}
-
 	s, err := NewServer(*addr, *data)
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Println("Listening on " + *addr)
+	fmt.Println("Databases:")
+	for _, name := range s.ListDatabases() {
+		fmt.Println("  " + name)
+	}
+
+	fmt.Println("Listening:")
+	fmt.Println("  data : " + *addr)
+	if *prof != "" {
+		fmt.Println("  pprof: " + *prof)
+		go http.ListenAndServe(*prof, nil)
+	}
+
 	if err := s.Start(); err != nil {
 		fmt.Println(err)
 	}
