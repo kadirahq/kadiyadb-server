@@ -50,11 +50,6 @@ func NewServer(addr, dir string) (*Server, error) {
 		dbs:      kadiyadb.LoadAll(dir),
 	}
 
-	fmt.Println("Loading Databases:")
-	for name := range s.dbs {
-		fmt.Println("  " + name)
-	}
-
 	s.sync = function.NewGroup(s.Sync)
 	return s, nil
 }
