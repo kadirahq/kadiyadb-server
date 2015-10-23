@@ -94,7 +94,8 @@ func (s *Server) handleMessage(tr *transport.Transport, data [][]byte, id uint32
 
 	switch msgType {
 	case MsgTypeTrack:
-		err = tr.SendBatch(s.handleTrack(data), id, MsgTypeTrack)
+		resBytes := s.handleTrack(data)
+		go s.syncAndSend(tr, resBytes, id, MsgTypeTrack)
 	case MsgTypeFetch:
 		err = tr.SendBatch(s.handleFetch(data), id, MsgTypeFetch)
 	}
@@ -142,7 +143,6 @@ func (s *Server) handleTrack(trackBatch [][]byte) (resBatch [][]byte) {
 		setResponse(i, res, "")
 	}
 
-	s.sync.Run()
 	return resBytes
 }
 
@@ -190,6 +190,14 @@ func (s *Server) handleFetch(fetchBatch [][]byte) (resBatch [][]byte) {
 	}
 
 	return resBytes
+}
+
+func (s *Server) syncAndSend(tr *transport.Transport, resBytes [][]byte, id uint32, msgType uint8) {
+	s.sync.Run()
+	err := tr.SendBatch(resBytes, id, msgType)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 // Sync syncs every database in the server
