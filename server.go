@@ -18,8 +18,8 @@ const (
 
 const (
 	// SyncPeriod is the time between database syncs
-	// track responses are flushed every SyncPeriod
-	SyncPeriod = 100 * time.Millisecond
+	// client responses are flushed every SyncPeriod
+	SyncPeriod = 250 * time.Millisecond
 )
 
 var (
