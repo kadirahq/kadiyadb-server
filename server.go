@@ -2,10 +2,9 @@ package main
 
 import (
 	"errors"
-	"fmt"
+	"io"
 	"time"
 
-	"github.com/kadirahq/go-tools/function"
 	"github.com/kadirahq/kadiyadb"
 	"github.com/kadirahq/kadiyadb-protocol"
 	"github.com/kadirahq/kadiyadb-transport"
@@ -18,8 +17,9 @@ const (
 )
 
 const (
-	// syncPeriod is the time between database syncs in milliseconds
-	syncPeriod = 500
+	// SyncPeriod is the time between database syncs
+	// track responses are flushed every SyncPeriod
+	SyncPeriod = 100 * time.Millisecond
 )
 
 var (
@@ -30,192 +30,102 @@ var (
 	ErrCorruptMsg = errors.New("corrupt message")
 )
 
-// Server is a kadiradb server
-type Server struct {
-	trServer *transport.Server
-	dbs      map[string]*kadiyadb.DB
-	sync     *function.Group
+// Listener ...
+type Listener struct {
+	listener  *transport.Listener
+	databases map[string]*kadiyadb.DB
 }
 
-// NewServer create a transport connection that clients can send requests to.
-// It starts listening but does not actually start handling incomming requests.
-func NewServer(addr, dir string) (*Server, error) {
-	server, err := transport.Serve(addr)
-	if err != nil {
-		return nil, err
+// Listen ...
+func Listen(addr, dir string) (err error) {
+	l := &Listener{
+		databases: kadiyadb.LoadAll(dir),
 	}
 
-	s := &Server{
-		trServer: server,
-		dbs:      kadiyadb.LoadAll(dir),
-	}
+	go l.syncDatabases()
 
-	s.sync = function.NewGroup(s.Sync)
-	return s, nil
+	l.listener = transport.NewListener(l.handle)
+	return l.listener.Listen(addr)
 }
 
-// Start starts processing incomming requests
-func (s *Server) Start() error {
-	go func() {
-		for _ = range time.Tick(syncPeriod * time.Millisecond) {
-			s.sync.Flush()
-		}
-	}()
-
+func (l *Listener) syncDatabases() {
 	for {
-		conn, err := s.trServer.Accept()
-		if err != nil {
-			continue
+		for _, db := range l.databases {
+			db.Sync()
 		}
 
-		go s.handleConnection(conn)
+		// FIXME there's a race between db syncs and client write flushes
+		// one possible solution is to perform client flushes in 2 steps
+		// step one swaps buffers so new responses go to next write flush
+		// step two actually flushes the writes to the tcp connection
+		l.listener.Flush()
+
+		time.Sleep(SyncPeriod)
 	}
 }
 
-func (s *Server) handleConnection(conn *transport.Conn) {
-	tr := transport.New(conn)
-
-	for {
-		data, id, msgType, err := tr.ReceiveBatch()
-		if err != nil {
-			break
-		}
-
-		go s.handleMessage(tr, data, id, msgType)
+func (l *Listener) handle(c *transport.Conn) (err error) {
+	msg := &protocol.Request{}
+	if err := c.Recv(msg); err != nil && err != io.EOF {
+		return err
 	}
 
-	if err := conn.Close(); err != nil {
-		fmt.Println(err)
+	switch msg.Req.(type) {
+	case *protocol.Request_Track:
+		go l.track(c, msg)
+	case *protocol.Request_Fetch:
+		go l.fetch(c, msg)
 	}
+
+	return nil
 }
 
-func (s *Server) handleMessage(tr *transport.Transport, data [][]byte, id uint32, msgType uint8) {
-	var err error
-
-	switch msgType {
-	case MsgTypeTrack:
-		resBytes := s.handleTrack(data)
-		go s.syncAndSend(tr, resBytes, id, MsgTypeTrack)
-	case MsgTypeFetch:
-		err = tr.SendBatch(s.handleFetch(data), id, MsgTypeFetch)
-	}
-
-	if err != nil {
-		fmt.Println(err)
-	}
-}
-
-func (s *Server) handleTrack(trackBatch [][]byte) (resBatch [][]byte) {
-	resBytes := make([][]byte, len(trackBatch))
-	req := &protocol.ReqTrack{}
+func (l *Listener) track(c *transport.Conn, msg *protocol.Request) {
+	req := msg.GetTrack()
 	res := &protocol.ResTrack{}
 
-	setResponse := func(i int, res *protocol.ResTrack, errmsg string) {
-		res.Error = errmsg
-		buf, err := res.Marshal()
-		if err != nil {
-			fmt.Println(err)
-		} else {
-			resBytes[i] = buf
-		}
+	defer func() {
+		c.Send(&protocol.Response{
+			Id:  msg.Id,
+			Res: &protocol.Response_Track{Track: res},
+		})
+	}()
+
+	db, ok := l.databases[req.Database]
+	if !ok {
+		res.Error = ErrUnknownDB.Error()
+		return
 	}
 
-	for i, trackData := range trackBatch {
-		// Reset structs for reuse
-		req.Fields = req.Fields[:0]
-
-		if err := req.Unmarshal(trackData); err != nil {
-			setResponse(i, res, ErrCorruptMsg.Error())
-			continue
-		}
-
-		db, ok := s.dbs[req.Database]
-		if !ok {
-			setResponse(i, res, ErrUnknownDB.Error())
-			continue
-		}
-
-		if err := db.Track(req.Time, req.Fields, req.Total, req.Count); err != nil {
-			setResponse(i, res, err.Error())
-			continue
-		}
-
-		setResponse(i, res, "")
+	if err := db.Track(req.Time, req.Fields, req.Total, req.Count); err != nil {
+		res.Error = err.Error()
+		return
 	}
-
-	return resBytes
 }
 
-func (s *Server) handleFetch(fetchBatch [][]byte) (resBatch [][]byte) {
-	resBytes := make([][]byte, len(fetchBatch))
-	req := &protocol.ReqFetch{}
+func (l *Listener) fetch(c *transport.Conn, msg *protocol.Request) {
+	req := msg.GetFetch()
 	res := &protocol.ResFetch{}
 
-	setResponse := func(i int, res *protocol.ResFetch, errmsg string, chunks []*protocol.Chunk) {
-		res.Error = errmsg
-		res.Chunks = chunks
-		buf, err := res.Marshal()
-		if err != nil {
-			fmt.Println(err)
-		} else {
-			resBytes[i] = buf
-		}
+	defer func() {
+		c.Send(&protocol.Response{
+			Id:  msg.Id,
+			Res: &protocol.Response_Fetch{Fetch: res},
+		})
+	}()
+
+	db, ok := l.databases[req.Database]
+	if !ok {
+		res.Error = ErrUnknownDB.Error()
+		return
 	}
 
-	for i, fetchData := range fetchBatch {
-		// Reset structs for reuse
-		req.Fields = req.Fields[:0]
-		res.Chunks = res.Chunks[:0]
-
-		err := req.Unmarshal(fetchData)
+	db.Fetch(req.From, req.To, req.Fields, func(c []*protocol.Chunk, err error) {
 		if err != nil {
-			setResponse(i, res, ErrCorruptMsg.Error(), nil)
-			continue
-		}
-
-		db, ok := s.dbs[req.Database]
-		if !ok {
-			setResponse(i, res, ErrUnknownDB.Error(), nil)
+			res.Error = err.Error()
 			return
 		}
 
-		db.Fetch(req.From, req.To, req.Fields, func(chunks []*protocol.Chunk, err error) {
-			if err != nil {
-				setResponse(i, res, err.Error(), nil)
-				return
-			}
-
-			setResponse(i, res, "", chunks)
-		})
-	}
-
-	return resBytes
-}
-
-func (s *Server) syncAndSend(tr *transport.Transport, resBytes [][]byte, id uint32, msgType uint8) {
-	s.sync.Run()
-	err := tr.SendBatch(resBytes, id, msgType)
-	if err != nil {
-		fmt.Println(err)
-	}
-}
-
-// Sync syncs every database in the server
-func (s *Server) Sync() {
-	for dbname, db := range s.dbs {
-		if err := db.Sync(); err != nil {
-			fmt.Printf("Error while syncing database (name: %s) %s\n", dbname, err)
-		}
-	}
-}
-
-// ListDatabases returns a list of names of loaded databases
-func (s *Server) ListDatabases() (list []string) {
-	list = make([]string, 0, len(s.dbs))
-
-	for db := range s.dbs {
-		list = append(list, db)
-	}
-
-	return list
+		res.Chunks = c
+	})
 }

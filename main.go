@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"fmt"
+	"log"
 
 	"net/http"
 	_ "net/http/pprof"
@@ -17,24 +17,14 @@ var (
 func main() {
 	flag.Parse()
 
-	s, err := NewServer(*addr, *data)
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println("Databases:")
-	for _, name := range s.ListDatabases() {
-		fmt.Println("  " + name)
-	}
-
-	fmt.Println("Listening:")
-	fmt.Println("  data : " + *addr)
+	log.Println("Listening:")
+	log.Println("  data : " + *addr)
 	if *prof != "" {
-		fmt.Println("  pprof: " + *prof)
+		log.Println("  pprof: " + *prof)
 		go http.ListenAndServe(*prof, nil)
 	}
 
-	if err := s.Start(); err != nil {
-		fmt.Println(err)
+	if err := Listen(*addr, *data); err != nil {
+		panic(err)
 	}
 }
