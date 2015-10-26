@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -97,7 +96,6 @@ func TestTrack(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fmt.Println("res", res)
 	// TODO verify the track was successful
 	// TODO verify response message content
 
@@ -137,7 +135,6 @@ func TestFetch(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fmt.Println("res", res)
 	// TODO verify response message content
 
 	if err := c.Close(); err != nil {
