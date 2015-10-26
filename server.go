@@ -81,7 +81,7 @@ func (l *Listener) track(c *transport.Conn, msg *protocol.Request) {
 		c.Send(&protocol.Response{
 			Id:  msg.Id,
 			Res: &protocol.Response_Track{Track: res},
-		})
+		}, false)
 	}()
 
 	db, ok := l.databases[req.Database]
@@ -104,7 +104,7 @@ func (l *Listener) fetch(c *transport.Conn, msg *protocol.Request) {
 		c.Send(&protocol.Response{
 			Id:  msg.Id,
 			Res: &protocol.Response_Fetch{Fetch: res},
-		})
+		}, true)
 	}()
 
 	db, ok := l.databases[req.Database]
