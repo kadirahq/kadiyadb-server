@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"io"
 	"time"
 
 	"github.com/kadirahq/kadiyadb"
@@ -66,7 +65,7 @@ func (l *Listener) syncDatabases() {
 
 func (l *Listener) handle(c *transport.Conn) (err error) {
 	msg := &protocol.Request{}
-	if err := c.Recv(msg); err != nil && err != io.EOF {
+	if err := c.Recv(msg); err != nil {
 		return err
 	}
 
