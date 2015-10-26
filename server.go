@@ -9,16 +9,10 @@ import (
 	"github.com/kadirahq/kadiyadb-transport"
 )
 
-// message types
 const (
-	MsgTypeTrack = iota + 1
-	MsgTypeFetch
-)
-
-const (
-	// SyncPeriod is the time between database syncs
-	// client responses are flushed every SyncPeriod
-	SyncPeriod = 250 * time.Millisecond
+	// SyncInterval is the time between database syncs
+	// client responses are flushed every SyncInterval
+	SyncInterval = 100 * time.Millisecond
 )
 
 var (
@@ -59,7 +53,7 @@ func (l *Listener) syncDatabases() {
 		// step two actually flushes the writes to the tcp connection
 		l.listener.Flush()
 
-		time.Sleep(SyncPeriod)
+		time.Sleep(SyncInterval)
 	}
 }
 
